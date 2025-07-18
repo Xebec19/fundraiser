@@ -1,24 +1,56 @@
 pragma solidity ^0.8.28;
 
 contract Campaign {
-    address manager;
-    address[] members;
+    address public chairperson;
+    uint public minAmount;
 
-    constructor() {
-        manager = msg.sender;
+    struct Contribution {
+        string name;
+        uint value;
+        bool exists;
     }
 
-    function contribute() public payable {
-        require(msg.value > 0.01 ether);
-        require(msg.sender != manager);
+    mapping(address => Contribution) public contributions;
 
-        members.push(msg.sender);
+    uint public requestCount;
 
+    struct Request {
+        string title;
+        uint votes;
+        address payable recipient;
+        string description;
+        bool completed;
+        uint approvalCount;
+        mapping(address => bool) approvals;
     }
 
-    function getBalance() external view returns (uint256) {
-        require(msg.sender == manager);
+    Request[] public requests;
 
-        return address(this).balance;
+    constructor(uint amt) {
+        chairperson = msg.sender;
+        minAmount = amt;
+    }
+
+    function contribute(string calldata name) external payable {
+        require(msg.sender != chairperson, "Chairperson can not contribute");
+        require(msg.value < minAmount, "Value is too low!");
+        require(
+            !contributions[msg.sender].exists,
+            "User has already contributed"
+        );
+
+        contributions[msg.sender] = Contribution(name, msg.value, true);
+    }
+
+    function createRequest(
+        string calldata title,
+        string calldata description,
+        address payable recipient
+    ) public {
+        Request storage req;
+        req.title = title;
+        req.description = description;
+        req.recipient = recipient;
+        req.approvalCount = 0;
     }
 }
