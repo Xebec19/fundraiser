@@ -12,8 +12,6 @@ contract Campaign {
 
     mapping(address => Contribution) public contributions;
 
-    uint public requestCount;
-
     struct Request {
         string title;
         uint votes;
@@ -22,9 +20,11 @@ contract Campaign {
         bool completed;
         uint approvalCount;
         mapping(address => bool) approvals;
+        address[] voters;
     }
 
     Request[] public requests;
+    uint public requestCount;
 
     constructor(uint amt) {
         chairperson = msg.sender;
@@ -47,10 +47,21 @@ contract Campaign {
         string calldata description,
         address payable recipient
     ) public {
-        Request storage req;
+        requestCount++;
+        Request storage req = requests[requestCount];
         req.title = title;
         req.description = description;
         req.recipient = recipient;
         req.approvalCount = 0;
+    }
+
+    function approveRequest(uint index) public {
+        require(msg.sender != chairperson, "Chairperson can not approve");
+        require(contributions[msg.sender].exists, "You must contribute first");
+        require(index < requestCount, "Request does not exist");
+        require(requests[index].vo)
+        Request storage req = requests[index];
+
+
     }
 }
